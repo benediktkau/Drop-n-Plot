@@ -9,7 +9,8 @@ def main():
     font = {'family': 'Verdana',
             'color':  'black',
             'weight': 'normal',
-            'size': 10,
+            'size': 8,
+            'color': 'grey'
             }
 
     # new attempt with temperature
@@ -22,17 +23,22 @@ def main():
 
     # Layout
     fig, ax = plt.subplots()
-    plt.ylabel('Degrees',fontdict=font)
-    plt.xlabel('Years',fontdict=font)
+    plt.ylabel('Degrees',fontdict=font, rotation='horizontal', verticalalignment='baseline', loc='top')
+    #plt.xlabel('Years',fontdict=font)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.spines['left'].set_visible(False)
     ax.spines["bottom"].set_visible(False)
-    ax.get_xaxis().tick_bottom()  
-    ax.get_yaxis().tick_left() 
+    plt.xticks(fontsize=8, color='grey')
+    plt.yticks(fontsize=8, color='grey')
+    plt.plot(df.index, df.values, 'cornflowerblue')
+    plt.show
+    plt.savefig('chart.png')
+    return
 
     def animate(i):
         plt.plot(df[:i].index, df[:i].values, 'cornflowerblue')
+        plt.title('Temperature \n' + str(df.index[i].strftime('%Y')))
  
     import matplotlib.animation as ani
     animator = ani.FuncAnimation(fig, animate, interval = 50, frames=df.size-1)
