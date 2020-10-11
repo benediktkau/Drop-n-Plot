@@ -131,3 +131,6 @@ dmypy.json
 *.mpeg
 *.gif
 *.png
+*.csv
+*.pdf
+*.xlsx
