@@ -16,14 +16,14 @@ def main():
     df, dfType = readData(filename)
 
     df.plot()
-    plt.show()
-    return
+    plt.savefig('dataframe.png', dpi = 300)
+    print(len(df))
 
-    # Smoothening
-    smootheningMethod = 'cubic'
-    df = smoothening(df, smootheningMethod)
+    if len(df) < 100:
+        # Smoothening
+        smootheningMethod = 'cubic'
+        df = smoothening(df, smootheningMethod)
 
-    return
 
     # Layout
     fig, ax = plt.subplots()
@@ -39,15 +39,15 @@ def main():
 
     # plt.show
     # plt.savefig('chart.png')
-    # return 
+    # return
 
     # Animation
     def animate(i):
         plt.plot(df[:i].index, df[:i].values, 'darkorange')
-        plt.title('Temperature \n' + str(df.index[i].strftime('%Y')))
+        #plt.title('Temperature \n' + str(df.index[i].strftime('%Y')))
 
     animator = ani.FuncAnimation(fig, animate, interval=50, frames=df.size - 1)
-    animator.save('temperature.gif', dpi=200)
+    animator.save('new.gif', dpi=200)
 
 
 def readData(filename):
@@ -56,9 +56,7 @@ def readData(filename):
         df.index = pd.to_datetime(df.index, format='%Y')
         dfType = 'Series'
     else:
-        # df.transpose()
-        print(df)
-
+        df = df.transpose()
         dfType = 'DataFrame'
     return df, dfType
 
