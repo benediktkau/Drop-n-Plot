@@ -6,21 +6,49 @@
 
 {% block main %}
 
-<!-- FILE UPLOAD -->
-<div class="container mt-3 col-sm-2">
-    <form action="/" method="post">
-        <div class="custom-file mb-3">
-          <input type="file" id="filepath" name="filepath" class="custom-file-input" />
-          <label class="custom-file-label" for="customFile">Choose file</label>
+<!-- FILE UPLOAD https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask -->
+<!-- <div class="container col-md-2">
+    <form action="/" method="POST" enctype="multipart/form-data">
+
+        <div class="form-group">
+            <div class="custom-file mb-3 form-inline">
+                <input type="file" id="filepath" name="file" class="custom-file-input" accept=".csv"/>
+                <label class="custom-file-label" for="customFile">Choose .csv file</label>
+            </div>         
+            <div>
+                <input type="text form-control" id="plotname" name="plotname"/>
+            </div>       
         </div>
-        <button class="btn btn-primary btn-block" type="plot">Plot!</button>
+        <div class="row">
+            <button class="btn btn-primary btn-block" type="plot">Plot!</button>
+        </div>
+
+
     </form>
-</div>
+</div> -->
+
+<form action="/" method="POST" enctype="multipart/form-data">
+    <div class="container col-md-2" >
+        <div class="row pb-3">
+            <div class="col-6">
+                <input type="text" class="form-control input-group" id="plotname" name="plotname" placeholder="Plot Title"/>
+            </div>
+            <div class="col-6">
+                <input type="file" id="filepath" name="file" class="custom-file-input" accept=".csv"/>
+                <label class="custom-file-label" for="customFile">Choose .csv file</label>
+            </div>
+        </div>
+            <div class="col-12">
+                <button class="btn btn-primary btn-default btn-block" type="plot">Plot!</button>
+            </div>
+    </div>
+</form>
+
 
 
 <!-- DISPLAYING PLOT -->
 <div>
-    <img src="../static/temperature.gif" alt="sine" class="mx-auto d-block" width="1000"/>
+    <img src="{{ plotFilename }}" alt="sine" class="mx-auto d-block" width="1000"/>
 </div>
 
 
@@ -41,18 +69,6 @@
         </td>
     </tr>
 </table>
-
-
-
-
-
-
-
-
-
-<!-- DEBUGGING -->
-<center>Debugging filepath: {{ filepath }}
-</center>
 
 
 {% endblock %}

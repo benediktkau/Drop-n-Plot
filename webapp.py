@@ -1,45 +1,41 @@
 from flask import Flask, render_template, request, flash, redirect, url_for
+from matplotlib.pyplot import plot
 from werkzeug.utils import secure_filename
+import helpers
 import os
 
 app = Flask(__name__)
-
-UPLOAD_FOLDER = 'uploads/'
-ALLOWED_EXTENSIONS = {'txt', 'csv'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
+app.config['UPLOAD_FOLDER'] = helpers.UPLOAD_FOLDER
+app.config.update(
+    TESTING=True,
+    SECRET_KEY=b'_5#y2L"F4Q8z\n\xec]/'
+)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        if not request.form.get("filepath"):
-            return render_template("sorry.html")
-        filepath = request.form.get("filepath")
+        """ Deleting old files """
+        helpers.deleteOldFiles()
+        
+        """ Handling file upload """
+        try:
+            uploadedFile = request.files['file']
+            if uploadedFile.filename != '':
+                uploadedFile.save(uploadedFile.filename)
+        except Exception:
+            return render_template('sorry.html', text="Sorry, there was a problem with your file upload")
+        
+        plotTitle = request.form.get('plotname')
+        if plotTitle == '':
+            plotTitle = 'Untitled'
+    
+        """ Handling Plotting """
+        plotObject = helpers.Plot(uploadedFile.filename)
+        plotFilename = plotObject.main(plotTitle) # concatenate filename of plot result
+        os.remove(uploadedFile.filename)  
+  
+        return render_template('index.html', plotFilename=plotFilename, defaults={'plotFilename': '../static/temperature.gif'})
 
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files[filepath]
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
-                                    filename=filename))
-    
-        return render_template('index.html', filepath=filepath)
-
-    
-    
     
     else:
-        return render_template("index.html", filepath='hiu')
+        return render_template("index.html", plotFilename='../static/temperature.gif')

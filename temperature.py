@@ -67,5 +67,5 @@ def smoothening(df, method):
     df_interpolated = df_resampled.interpolate(method=method)
     return df_interpolated
 
-
-main()
+if __name__ == "__main__":
+    main()
