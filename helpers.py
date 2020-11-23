@@ -1,4 +1,5 @@
 import matplotlib as plt # pyplot
+import matplotlib.pyplot
 plt.use('Agg')
 import pandas as pd
 import datetime
@@ -13,9 +14,6 @@ class Plot:
     def __init__(self, filepath):
         self.filepath = filepath
 
-    def plot():
-        pass
-
     def main(self, plotTitle):
         font = {'family': 'Verdana',
                 'weight': 'normal',
@@ -26,14 +24,10 @@ class Plot:
         timeInterval = 'day'
 
         df, dfType = self.readData(self.filepath)
-
-        df.plot()
-        plt.pyplot.savefig('dataframe.png', dpi = 300)
-
+            
         # Smoothening
         smootheningMethod = 'cubic'
         #df = self.smoothening(df, smootheningMethod)
-
 
         # Layout
         fig, ax = plt.pyplot.subplots()
@@ -46,19 +40,17 @@ class Plot:
         plt.pyplot.yticks(fontsize=8, color='grey')
         ax.tick_params(axis='x', colors='grey')
         ax.tick_params(axis='y', colors='grey')
-
-        # plt.show
-        # plt.savefig('chart.png')
-        # return
+    
 
         # Animation
         def animate(i):
+            plt.pyplot.legend(df.columns)
             plt.pyplot.plot(df[:i].index, df[:i].values, 'darkorange')
             plt.pyplot.title(plotTitle + '\n' + str(df.index[i].strftime('%Y')))
         plotFilename = self.fileName()
 
         animator = plt.animation.FuncAnimation(fig, animate, interval=50, frames=df.size - 1)
-        animator.save(plotFilename, dpi=200)
+        animator.save('plotFilename.gif', dpi=100)
         
         return plotFilename
 
@@ -70,6 +62,7 @@ class Plot:
             dfType = 'Series'
         else:
             df = df.transpose()
+            df.index = pd.to_datetime(df.index)
             dfType = 'DataFrame'
         return df, dfType
     
@@ -99,6 +92,6 @@ def deleteOldFiles():
                 os.remove(currentDirectory + '/static/' + filename) 
 
 if __name__ == "__main__":
-    plot = Plot(filepath='src/temperature.csv')
+    plot = Plot(filepath='src/covid.csv')
     deleteOldFiles()
     plot.main('title')
