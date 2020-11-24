@@ -11,12 +11,13 @@ app.config.update(
     SECRET_KEY=b'_5#y2L"F4Q8z\n\xec]/'
 )
 
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         """ Deleting old files """
         helpers.deleteOldFiles()
-        
+
         """ Handling file upload """
         try:
             uploadedFile = request.files['file']
@@ -24,18 +25,19 @@ def index():
                 uploadedFile.save(uploadedFile.filename)
         except Exception:
             return render_template('sorry.html', text="Sorry, there was a problem with your file upload")
-        
+
         plotTitle = request.form.get('plotname')
         if plotTitle == '':
             plotTitle = 'Untitled'
-    
+
         """ Handling Plotting """
         plotObject = helpers.Plot(uploadedFile.filename)
-        plotFilename = plotObject.main(plotTitle) # concatenate filename of plot result
-        os.remove(uploadedFile.filename)  
-  
-        return render_template('index.html', plotFilename=plotFilename, defaults={'plotFilename': '../static/temperature.gif'})
+        plotFilename = plotObject.main(plotTitle)  # concatenate filename of plot result
+        os.remove(uploadedFile.filename)
 
-    
+        return render_template('index.html', plotFilename=plotFilename,
+                               defaults={'plotFilename': '../static/temperature.gif'})
+
+
     else:
         return render_template("index.html", plotFilename='../static/temperature.gif')
