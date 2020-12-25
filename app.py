@@ -3,6 +3,8 @@ from matplotlib.pyplot import plot
 from werkzeug.utils import secure_filename
 import helpers
 import os
+import plot_class
+import logging
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = helpers.UPLOAD_FOLDER
@@ -14,11 +16,21 @@ app.config.update(
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    return render_template("index.html", plotFilename='../static/temperature.gif')
+
+
+@app.route("/plot", methods=["GET", "POST"])
+def plot():
     if request.method == "POST":
         """ Deleting old files """
         helpers.deleteOldFiles()
+        logging.debug('Old File Deleted')
 
         """ Handling file upload """
+        if request.files['file'] == '':
+            return render_template('sorry.html', text="Sorry, there was a problem with your file upload")
+
+
         try:
             uploadedFile = request.files['file']
             if uploadedFile.filename != '':
@@ -31,7 +43,7 @@ def index():
             plotTitle = 'Untitled'
 
         """ Handling Plotting """
-        plotObject = helpers.Plot(uploadedFile.filename)
+        plotObject = plot_class.Plot(uploadedFile.filename)
         plotFilename = plotObject.main(plotTitle)  # concatenate filename of plot result
         os.remove(uploadedFile.filename)
 
