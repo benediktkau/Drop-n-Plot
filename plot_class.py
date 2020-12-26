@@ -37,23 +37,42 @@ class Plot:
         timeInterval = 'day'
 
         try:
-            df, dfType = self.read_dataframe(self.filepath)
+            df, datetime_index = self.read_dataframe(self.filepath)
         except FileNotFoundError as e:
             logging.critical('File not found', e)
             exit(1)
 
-
         # Smoothening
-        smootheningMethod = 'cubic'
-        # df = self.smoothening(df, smootheningMethod)
+        interpolation_method = 'cubic'
 
-        # Smoothening Standard
-        df = self.standard_interpolation(df, 'method')
-        print(df)
+        if datetime_index: # interpolation for panda datetime index
+            df = self.datetime_interpolation(df, interpolation_method)
+        else: # standard interpolation
+            df = self.standard_interpolation(df, interpolation_method)
+            df.reset_index(drop=True, inplace=True)
+
         logging.info('Length dataframe' + str(len(df.index)))
 
-        # Layout
-        fig, ax = plt.pyplot.subplots()
+        # Get xlim, ylim
+        if datetime_index:
+            xlim_init = (min(df.index), max(df.index))
+            ylim_init = (min(df.values), max(df.values))
+        else:
+            xlim_init = (0.1 * min(df.index), 0.1 * max(df.index))
+            ylim_init = (0, 0.3 * max(df.values))
+
+        fig = plt.pyplot.figure()
+        ax = plt.pyplot.axes(xlim=xlim_init, ylim=ylim_init)
+        line, = ax.plot([], [], lw=2)
+
+        def init():
+            """
+
+            :return:
+            """
+            line.set_data([], [])
+            return line,
+
         plt.pyplot.ylabel('Degrees', fontdict=font, rotation='horizontal', loc='top')
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
@@ -64,8 +83,8 @@ class Plot:
         ax.tick_params(axis='x', colors='grey')
         ax.tick_params(axis='y', colors='grey')
 
-        #plt.pyplot.plot(df.index, df.values)
-        #plt.pyplot.savefig('newplot.png', dpi=200)
+        # plt.pyplot.plot(df.index, df.values)
+        # plt.pyplot.savefig('newplot.png', dpi=200)
 
         # Animation
         def animate(i):
@@ -76,22 +95,45 @@ class Plot:
             """
 
             # plt.pyplot.legend(df.columns)
-            plt.pyplot.plot(df[:i].index, df[:i].values, 'darkorange')
+            # plt.pyplot.plot(df[:i].index, df[:i].values, 'darkorange')
+
+            x = list(df.index[:i])
+            y = df.values[:i]
+
+            line.set_data(x, y)
+
+            # Adapt ylim, xlim
+            if not len(x) == 0 or not len(y) == 0:
+                if df.index[i] < xlim_init[0] or df.index[i] > xlim_init[1]:
+                    ax.set_xlim(0, max(x) * 1.01)
+
+                if df.values[i] < ylim_init[0] or df.values[i] > ylim_init[1]:
+                    ax.set_ylim(min(y), max(y) * 1.1)
 
             # print progress bar
-            helpers.progress_bar(i, len(df.index))
+            helpers.progress_bar(i + 2, len(df.index))
 
-            # plt.pyplot.title(plotTitle + '\n' + str(df.index[i].strftime('%Y')))
+            # Add Title
+            if datetime_index:
+                plt.pyplot.title(plotTitle + '\n' + str(df.index[i].strftime('%Y')))
+            else:
+                plt.pyplot.title('\n'.join([plotTitle, str(int(df.index[i]))]))
+
+            return line,
 
         filename_plot = self.create_filename()
 
+        # Call animate() function
         animator = plt.animation.FuncAnimation(fig,
                                                animate,
-                                               interval=30,
-                                               repeat_delay=10,
-                                               repeat=True,
-                                               frames=len(df.index)-1)
-        animator.save(filename_plot, dpi=100)
+                                               interval=50,
+                                               frames=len(df.index) - 1,
+                                               init_func=init,
+                                               blit=True,
+                                               repeat_delay=300)
+
+        # Save file as gif
+        animator.save(filename_plot, dpi=300)
 
         return filename_plot
 
@@ -107,16 +149,26 @@ class Plot:
         delimiter = helpers.detect_delimiter(filename)
 
         # Read Dataframe or Series
-        df = pd.read_csv(filename, delimiter=delimiter, header='infer', squeeze=True, index_col=0, parse_dates=True)
+        df = pd.read_csv(filename, delimiter=delimiter, header='infer', squeeze=True,
+                         index_col=0 , parse_dates=True)
+
+        # Check whether index is pd.datetime format
+        if isinstance(df.index, pd.DatetimeIndex):
+            datetime_index = True
+            df.index = pd.to_datetime(df.index, format='%Y')
+        else:
+            datetime_index = False
+
 
         if isinstance(df, pd.Series):
             # df.index = pd.to_datetime(df.index, format='%Y')
             dfType = 'Series'
         else:
             df = df.transpose()
-            df.index = pd.to_datetime(df.index)
+            # df.index = pd.to_datetime(df.index)
             dfType = 'DataFrame'
-        return df, dfType
+
+        return df, datetime_index
 
     @staticmethod
     def create_filename():
@@ -144,7 +196,7 @@ class Plot:
         index_max = max(df.index)
 
         # Reindex (new data entries wil be NaN)
-        reindex_index = np.linspace(index_min, index_max, 10000)
+        reindex_index = np.linspace(index_min, index_max, 100)
         df_reindex = df.reindex(reindex_index)
 
         # Interpolate New Values
@@ -168,5 +220,7 @@ class Plot:
 
 
 if __name__ == '__main__':
-    new_plot = Plot('src/attempt.csv')
+    new_plot = Plot('src/temperature.csv')
+    # new_plot.new()
+
     new_plot.main('new plot on christmas')
