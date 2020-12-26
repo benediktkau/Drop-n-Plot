@@ -1,13 +1,20 @@
 import logging
 import matplotlib as plt  # pyplot
 import matplotlib.pyplot
+
 plt.use('Agg')
 import pandas as pd
 import datetime
 import helpers
+import numpy as np
 
 UPLOAD_FOLDER = 'uploads/'
 ALLOWED_EXTENSIONS = {'txt', 'csv'}
+
+logging.basicConfig(filename='dropnplot_log',
+                    level=logging.INFO,
+                    filemode='w',
+                    format='%(name)s - %(levelname)s - %(message)s')
 
 
 class Plot:
@@ -30,17 +37,20 @@ class Plot:
         timeInterval = 'day'
 
         try:
-            df, dfType = self.readData(self.filepath)
+            df, dfType = self.read_dataframe(self.filepath)
         except FileNotFoundError as e:
             logging.critical('File not found', e)
             exit(1)
 
-        print(df)
-        print(dfType)
 
         # Smoothening
         smootheningMethod = 'cubic'
         # df = self.smoothening(df, smootheningMethod)
+
+        # Smoothening Standard
+        df = self.standard_interpolation(df, 'method')
+        print(df)
+        logging.info('Length dataframe' + str(len(df.index)))
 
         # Layout
         fig, ax = plt.pyplot.subplots()
@@ -54,6 +64,9 @@ class Plot:
         ax.tick_params(axis='x', colors='grey')
         ax.tick_params(axis='y', colors='grey')
 
+        #plt.pyplot.plot(df.index, df.values)
+        #plt.pyplot.savefig('newplot.png', dpi=200)
+
         # Animation
         def animate(i):
             """
@@ -62,18 +75,27 @@ class Plot:
             :return:
             """
 
-            #plt.pyplot.legend(df.columns)
+            # plt.pyplot.legend(df.columns)
             plt.pyplot.plot(df[:i].index, df[:i].values, 'darkorange')
-            plt.pyplot.title(plotTitle + '\n' + str(df.index[i].strftime('%Y')))
 
-        plotFilename = self.fileName()
+            # print progress bar
+            helpers.progress_bar(i, len(df.index))
 
-        animator = plt.animation.FuncAnimation(fig, animate, interval=50, frames=df.size - 1)
-        animator.save('plotFilename.gif', dpi=100)
+            # plt.pyplot.title(plotTitle + '\n' + str(df.index[i].strftime('%Y')))
 
-        return plotFilename
+        filename_plot = self.create_filename()
 
-    def readData(self, filename):
+        animator = plt.animation.FuncAnimation(fig,
+                                               animate,
+                                               interval=30,
+                                               repeat_delay=10,
+                                               repeat=True,
+                                               frames=len(df.index)-1)
+        animator.save(filename_plot, dpi=100)
+
+        return filename_plot
+
+    def read_dataframe(self, filename):
         """
         Read data
 
@@ -88,7 +110,7 @@ class Plot:
         df = pd.read_csv(filename, delimiter=delimiter, header='infer', squeeze=True, index_col=0, parse_dates=True)
 
         if isinstance(df, pd.Series):
-            df.index = pd.to_datetime(df.index, format='%Y')
+            # df.index = pd.to_datetime(df.index, format='%Y')
             dfType = 'Series'
         else:
             df = df.transpose()
@@ -97,7 +119,7 @@ class Plot:
         return df, dfType
 
     @staticmethod
-    def fileName():
+    def create_filename():
         """
 
         :return:
@@ -105,10 +127,33 @@ class Plot:
 
         now = datetime.datetime.now()
         folder = 'static/'
-        return folder + now.strftime("plot_%Y-%m-%d_%H:%M:%S.gif")
+        return folder + now.strftime("plot_%Y_%m_%d_%H_%M_%S.gif")
 
     @staticmethod
-    def smoothening(df, method):
+    def standard_interpolation(df, method):
+        """
+        Interpolate data for smooth curve if no datetime index has been detected.
+
+        :param df:
+        :param method:
+        :return:
+        """
+
+        # Start, Stop of Index
+        index_min = min(df.index)
+        index_max = max(df.index)
+
+        # Reindex (new data entries wil be NaN)
+        reindex_index = np.linspace(index_min, index_max, 10000)
+        df_reindex = df.reindex(reindex_index)
+
+        # Interpolate New Values
+        df_interpolated = df_reindex.interpolate(method='cubic')
+
+        return df_interpolated
+
+    @staticmethod
+    def datetime_interpolation(df, method):
         """
 
         :param df:
@@ -123,5 +168,5 @@ class Plot:
 
 
 if __name__ == '__main__':
-    new_plot = Plot('src/temperature.csv')
+    new_plot = Plot('src/attempt.csv')
     new_plot.main('new plot on christmas')

@@ -1,0 +1,3 @@
+root - INFO - Length dataframe10000
+matplotlib.animation - WARNING - MovieWriter ffmpeg unavailable; using Pillow instead.
+matplotlib.animation - INFO - Animation.save using <class 'matplotlib.animation.PillowWriter'>

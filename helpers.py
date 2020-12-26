@@ -1,5 +1,6 @@
 import datetime
 import os
+import math
 
 UPLOAD_FOLDER = 'uploads/'
 ALLOWED_EXTENSIONS = {'txt', 'csv'}
@@ -42,3 +43,17 @@ def detect_delimiter(filename):
         csv_file.close()
 
     return delimiter_detected
+
+
+def progress_bar(iteration, total_iterations) -> None:
+    """
+    This method prints a progress bar in a loop.
+
+    :param iteration: current number of iteration in the loop
+    :param total_iterations: total number of iterations in the loop
+    """
+
+    progress = int(math.ceil(iteration / total_iterations * 100))
+    bar = '█' * int(progress / 4)
+    bar_rest = '·' * (25 - int(progress / 4))
+    print('\rProgress: ' + bar + bar_rest + str(progress) + ' %', end='', flush=True)

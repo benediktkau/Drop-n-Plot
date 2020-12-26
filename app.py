@@ -47,9 +47,9 @@ def plot():
         plotFilename = plotObject.main(plotTitle)  # concatenate filename of plot result
         os.remove(uploadedFile.filename)
 
-        return render_template('index.html', plotFilename=plotFilename,
+        return render_template('plot.html', plotFilename=plotFilename,
                                defaults={'plotFilename': '../static/temperature.gif'})
 
 
     else:
-        return render_template("index.html", plotFilename='../static/temperature.gif')
+        return render_template("plot.html", plotFilename='../static/temperature.gif')
