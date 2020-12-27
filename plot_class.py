@@ -46,9 +46,10 @@ class Plot:
             logging.critical('File not found', e)
 
         df, datetime_index, df_type = self.create_random_df()
+        frame_num = self.get_frame_num(50, 10, len(df.index))
 
         # Smoothening
-        interpolation_method = 'cubic'
+        interpolation_method = 'quadratic'
 
 
         if datetime_index:  # interpolation for panda datetime index
@@ -62,10 +63,10 @@ class Plot:
                                                               minutes=int(datetime_details_dict['minutes'] * 0.1),
                                                               seconds=int(datetime_details_dict['seconds'] * 0.1))
 
-            df = self.datetime_interpolation(df, datetime_details_dict['datetime_freq'], interpolation_method)
+            df = self.datetime_interpolation(df, datetime_details_dict['datetime_freq'], frame_num, interpolation_method)
 
         else:  # standard interpolation
-            df = self.standard_interpolation(df, interpolation_method)
+            df = self.standard_interpolation(df, frame_num, interpolation_method)
             df.reset_index(drop=True, inplace=True)
 
         logging.info('Length dataframe' + str(len(df.index)))
@@ -84,14 +85,13 @@ class Plot:
         lines = []
 
         if df_type == "DataFrame":
-            for line in lines:
+            for column in df:
                 color = COLORS[random.randint(0, len(COLORS) - 1)]
                 line_artist = ax.plot([], [], lw=2, color=color)[0]
                 lines.append(line_artist)
         else:
             color = COLORS[random.randint(0, len(COLORS) - 1)]
-            lines = [ax.plot([], [], lw=2, color=color)[0]]
-
+            lines.append(ax.plot([], [], lw=2, color=color)[0])
 
         def init():
             """
@@ -225,8 +225,6 @@ class Plot:
                 datetime_details_dict['datetime_freq'] = key
                 break
 
-        print(datetime_details_dict)
-
         return datetime_details_dict
 
     @staticmethod
@@ -255,8 +253,22 @@ class Plot:
 
         return df, False, "DataFrame"
 
+
     @staticmethod
-    def standard_interpolation(df, method):
+    def get_frame_num(frame_interval, animation_length, df_length):
+        """
+        :param frame_interval:
+        :param animation_length:
+        :param df_length:
+        :return:
+        """
+
+        frame_num = animation_length * df_length / (frame_interval / 1000)
+
+        return int(frame_num)
+
+    @staticmethod
+    def standard_interpolation(df, frame_num, method):
         """
         Interpolate data for smooth curve if no datetime index has been detected.
 
@@ -270,16 +282,18 @@ class Plot:
         index_max = max(df.index)
 
         # Reindex (new data entries wil be NaN)
-        reindex_index = np.linspace(index_min, index_max, 100)
+        reindex_index = np.linspace(index_min, index_max, frame_num)
         df_reindex = df.reindex(reindex_index)
 
         # Interpolate New Values
-        df_interpolated = df_reindex.interpolate(method='cubic')
+        df_interpolated = df_reindex.interpolate(method=method)
+
+
 
         return df_interpolated
 
     @staticmethod
-    def datetime_interpolation(df, datetime_freq, method):
+    def datetime_interpolation(df, datetime_freq, frame_num, method):
         """
 
         :param datetime_freq:
