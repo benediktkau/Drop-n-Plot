@@ -45,8 +45,11 @@ class Plot:
         except FileNotFoundError as e:
             logging.critical('File not found', e)
 
+        df, datetime_index, df_type = self.create_random_df()
+
         # Smoothening
         interpolation_method = 'cubic'
+
 
         if datetime_index:  # interpolation for panda datetime index
             datetime_details_dict = self.get_datetime_index_details(df.index)
@@ -60,6 +63,7 @@ class Plot:
                                                               seconds=int(datetime_details_dict['seconds'] * 0.1))
 
             df = self.datetime_interpolation(df, datetime_details_dict['datetime_freq'], interpolation_method)
+
         else:  # standard interpolation
             df = self.standard_interpolation(df, interpolation_method)
             df.reset_index(drop=True, inplace=True)
@@ -79,12 +83,15 @@ class Plot:
         ax = plt.pyplot.axes(xlim=xlim_init, ylim=ylim_init)
         lines = []
 
-        if df_type != "Series":
-            for column in df:
+        if df_type == "DataFrame":
+            for line in lines:
                 color = COLORS[random.randint(0, len(COLORS) - 1)]
-                print(color)
                 line_artist = ax.plot([], [], lw=2, color=color)[0]
                 lines.append(line_artist)
+        else:
+            color = COLORS[random.randint(0, len(COLORS) - 1)]
+            lines = [ax.plot([], [], lw=2, color=color)[0]]
+
 
         def init():
             """
@@ -121,7 +128,10 @@ class Plot:
             x = list(df.index[:i])
 
             for column, line in enumerate(lines):
-                y = df[df.columns[column]][:i]
+                if df_type == "DataFrame":
+                    y = df[df.columns[column]][:i]
+                else:
+                    y = df.values[:i]
                 line.set_data(x, y)
 
             # Adapt ylim, xlim
@@ -135,8 +145,8 @@ class Plot:
                         ax.set_xlim(0, max(x) * 1.01)
 
                 # If plotting progressed beyond initial ylim, extent axis by new maximum
-                if min(df.values[i]) < ylim_init[0] or max(df.values[i]) > ylim_init[1]:
-                    ax.set_ylim(min(y), max(y) * 1.1)
+                if df.values[i].min() < ylim_init[0] or df.values[i].max() > ylim_init[1]:
+                    ax.set_ylim(df.values[:i].min(), df.values[:i].max() * 1.1)
 
             # print progress bar
             helpers.progress_bar(i + 2, len(df.index))
@@ -187,15 +197,14 @@ class Plot:
         else:
             datetime_index = False
 
-        if len(df.index) < len(df.columns):
-            df.transpose()
-
         if isinstance(df, pd.Series):
             # df.index = pd.to_datetime(df.index, format='%Y')
             df_type = 'Series'
         else:
             # df.index = pd.to_datetime(df.index)
             df_type = 'DataFrame'
+            if len(df.index) < len(df.columns):
+                df.transpose()
 
         return df, datetime_index, df_type
 
@@ -230,6 +239,21 @@ class Plot:
         now = datetime.datetime.now()
         folder = 'static/'
         return folder + now.strftime("plot_%Y_%m_%d_%H_%M_%S.gif")
+
+    @staticmethod
+    def create_random_df():
+        """
+
+        :return:
+        """
+
+        df = pd.DataFrame()
+
+        for column in range(10):
+            values = np.random.randint(random.randint(-100, 0), random.randint(1,100), 10)
+            df[str(column)] = values
+
+        return df, False, "DataFrame"
 
     @staticmethod
     def standard_interpolation(df, method):
@@ -286,5 +310,5 @@ class Plot:
 
 
 if __name__ == '__main__':
-    new_plot = Plot('src/attempt.csv')
+    new_plot = Plot('src/temperature.csv')
     new_plot.main('new plot on christmas')
