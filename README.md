@@ -7,7 +7,7 @@ ____
 - interpolation ensures smooth animations even for small datasets
 - returns **.gif animation** (ca. 10-15 seconds in duration)
 
-![alt text](http://url/to/img.png)
+![FLASK GUI](https://github.com/benediktkau/Drop-n-Plot/blob/main/github_readme_res/example3.png)
 
 ### Without GUI 
 _(Python, matplotlib FuncAnimation)_
