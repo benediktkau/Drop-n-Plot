@@ -21,8 +21,10 @@ _(Flask)_
 - progress bar in command prompt
 - TODO: progress bar in GUI web interface
 
+![alt text](http://url/to/img.png)
+
+
 #### Format of .csv file
 - all standard delimiters are supported (, ; : | tab space)
 - if possible, column 0 should be an index
 - if the index is in datetime format, it should be in the Python datetime.datetime package format
-- 
