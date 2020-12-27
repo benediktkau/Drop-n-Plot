@@ -27,8 +27,8 @@
     </form>
 </div> -->
 
-<form action="/" method="POST" enctype="multipart/form-data">
-    <div class="container col-md-2" >
+<form action="/plot" method="POST" enctype="multipart/form-data">
+    <div class="container col-md-4" >
         <div class="row pb-3">
             <div class="col-6">
                 <input type="text" class="form-control input-group" id="plotname" name="plotname" placeholder="Plot Title"/>
@@ -38,9 +38,12 @@
                 <label class="custom-file-label" for="customFile">Choose .csv file</label>
             </div>
         </div>
+        <div class="row pb-3">
             <div class="col-12">
                 <button class="btn btn-primary btn-default btn-block" type="plot">Plot!</button>
             </div>
+        </div>
+
     </div>
 </form>
 

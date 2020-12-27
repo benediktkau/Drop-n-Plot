@@ -28,7 +28,8 @@ def plot():
 
         """ Handling file upload """
         if request.files['file'] == '':
-            return render_template('sorry.html', text="Sorry, there was a problem with your file upload")
+            pass
+        #    return render_template('sorry.html', text="Sorry, there was a problem with your file upload")
 
 
         try:
@@ -43,6 +44,7 @@ def plot():
             plotTitle = 'Untitled'
 
         """ Handling Plotting """
+
         plotObject = plot_class.Plot(uploadedFile.filename)
         plotFilename = plotObject.main(plotTitle)  # concatenate filename of plot result
         os.remove(uploadedFile.filename)

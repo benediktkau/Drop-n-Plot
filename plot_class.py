@@ -1,21 +1,25 @@
 import logging
 import matplotlib as plt  # pyplot
 import matplotlib.pyplot
-
-plt.use('Agg')
 import pandas as pd
-import datetime
 import helpers
 import numpy as np
 import random
 
+plt.use('Agg')  # used in backend
+
 UPLOAD_FOLDER = 'uploads/'
 ALLOWED_EXTENSIONS = {'txt', 'csv'}
 COLORS = (
-'tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive',
-'tab:cyan')
+    'tab:orange', 'tab:blue', 'tab:red', 'tab:green', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive',
+    'tab:cyan')
+MILLISECONDS_BETWEEN_FRAMES = 100
+ANIMATION_DURATION = 10  # seconds
+QUALITY_DPI = 200
 
-logging.basicConfig(filename='dropnplot_log',
+LINEPLOT = True
+
+logging.basicConfig(filename='dropnplot_log.log',
                     level=logging.INFO,
                     filemode='w',
                     format='%(name)s - %(levelname)s - %(message)s')
@@ -24,38 +28,34 @@ logging.basicConfig(filename='dropnplot_log',
 class Plot:
     def __init__(self, filepath):
         self.filepath = filepath
+        if filepath == '':
+            # Generate Random Dataframe
+            self.df, self.datetime_index, self.df_type = self.create_random_df()
 
-    def main(self, plotTitle):
+        else:
+            # Load File
+            try:
+                self.df, self.datetime_index, self.df_type = self.read_dataframe(self.filepath)
+            except FileNotFoundError as e:
+                logging.critical('File not found' + str(e))
+
+    def main(self, plot_title):
         """
 
-        :param plotTitle:
+        :param plot_title:
         :return:
         """
-
-        font = {'family': 'Verdana',
-                'weight': 'normal',
-                'size': 8,
-                'color': 'grey'
-                }
-
-        timeInterval = 'day'
-
-        try:
-            df, datetime_index, df_type = self.read_dataframe(self.filepath)
-        except FileNotFoundError as e:
-            logging.critical('File not found', e)
-
-        df, datetime_index, df_type = self.create_random_df()
-        frame_num = self.get_frame_num(50, 10, len(df.index))
+        # Get frame numbers required
+        frame_num = helpers.get_frame_num(MILLISECONDS_BETWEEN_FRAMES, 10)
+        logging.info('frame number:' + str(frame_num))
 
         # Smoothening
-        interpolation_method = 'quadratic'
+        interpolation_method = 'cubic'
 
+        if self.datetime_index:  # interpolation for panda datetime index
+            datetime_details_dict = self.get_datetime_index_details(self.df.index)
 
-        if datetime_index:  # interpolation for panda datetime index
-            datetime_details_dict = self.get_datetime_index_details(df.index)
-
-            datetime_xlim_date = min(df.index) + pd.Timedelta(weeks=int((datetime_details_dict['years'] * 52 +
+            datetime_xlim_date = min(self.df.index) + pd.Timedelta(weeks=int((datetime_details_dict['years'] * 52 +
                                                                          datetime_details_dict['months'] * 4.3 +
                                                                          datetime_details_dict['weeks']) * 0.1),
                                                               days=int(datetime_details_dict['days'] * 0.1),
@@ -63,16 +63,34 @@ class Plot:
                                                               minutes=int(datetime_details_dict['minutes'] * 0.1),
                                                               seconds=int(datetime_details_dict['seconds'] * 0.1))
 
-            df = self.datetime_interpolation(df, datetime_details_dict['datetime_freq'], frame_num, interpolation_method)
+            try:
+                df = self.datetime_interpolation(self.df, datetime_details_dict['datetime_freq'], frame_num,
+                                                 interpolation_method)
+            except Exception as e:
+                logging.warning('Interpolation Failed: ' + str(e))
+            else:
+                logging.info('Interpolation Successful')
+
+            frame_interval = helpers.get_frame_interval(ANIMATION_DURATION, len(df.index))
 
         else:  # standard interpolation
-            df = self.standard_interpolation(df, frame_num, interpolation_method)
+            try:
+                df = self.standard_interpolation(self.df, frame_num, interpolation_method)
+            except Exception as e:
+                logging.warning('Interpolation Failed: ' + str(e))
+            else:
+                logging.info('Interpolation Successful')
+
+            frame_interval = MILLISECONDS_BETWEEN_FRAMES
             df.reset_index(drop=True, inplace=True)
 
         logging.info('Length dataframe' + str(len(df.index)))
 
+        """ ATTEMPT SCATTER """
+        # plt.pyplot.savefig('attempt_scatter.png')
+
         # Get xlim, ylim
-        if datetime_index:
+        if self.datetime_index:
             xlim_init = (min(df.index), max(df.truncate(after=datetime_xlim_date).index))
 
         else:
@@ -82,27 +100,6 @@ class Plot:
 
         fig = plt.pyplot.figure()
         ax = plt.pyplot.axes(xlim=xlim_init, ylim=ylim_init)
-        lines = []
-
-        if df_type == "DataFrame":
-            for column in df:
-                color = COLORS[random.randint(0, len(COLORS) - 1)]
-                line_artist = ax.plot([], [], lw=2, color=color)[0]
-                lines.append(line_artist)
-        else:
-            color = COLORS[random.randint(0, len(COLORS) - 1)]
-            lines.append(ax.plot([], [], lw=2, color=color)[0])
-
-        def init():
-            """
-
-            :return:
-            """
-
-            for line in lines:
-                line.set_data([], [])
-            return lines
-
         # plt.pyplot.ylabel('Degrees', fontdict=font, rotation='horizontal', loc='top')
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
@@ -113,11 +110,40 @@ class Plot:
         ax.tick_params(axis='x', colors='grey')
         ax.tick_params(axis='y', colors='grey')
 
-        # plt.pyplot.plot(df.index, df.values)
-        # plt.pyplot.savefig('newplot.png', dpi=200)
+        if LINEPLOT:
+            lines = []
+
+            if self.df_type == "DataFrame":
+                for index in range(len(df.columns)):
+                    color = COLORS[index]
+                    line_artist = ax.plot([], [], lw=2, color=color)[0]
+                    lines.append(line_artist)
+            else:
+                color = COLORS[random.randint(0, len(COLORS) - 1)]
+                lines.append(ax.plot([], [], lw=2, color=color)[0])
+
+        else:
+            scat = plt.pyplot.scatter([], [], cmap='gist_heat', alpha=0.5, marker='.')
+
+        def init_line():
+            """
+
+            :return:
+            """
+            if LINEPLOT:
+                for line in lines:
+                    line.set_data([], [])
+                return lines
+
+            else:
+                scat.set_offsets([])
+                return scat,
+
+
+        datetime_index = self.datetime_index
 
         # Animation
-        def animate(i):
+        def animate_line(i):
             """
             Animation function for matplotlib FuncAnimation
 
@@ -127,12 +153,18 @@ class Plot:
 
             x = list(df.index[:i])
 
-            for column, line in enumerate(lines):
-                if df_type == "DataFrame":
-                    y = df[df.columns[column]][:i]
-                else:
-                    y = df.values[:i]
-                line.set_data(x, y)
+            if LINEPLOT:
+
+                for column, line in enumerate(lines):
+                    if self.df_type == "DataFrame":
+                        y = df[df.columns[column]][:i]
+                    else:
+                        y = df.values[:i]
+                    line.set_data(x, y)
+
+            else:
+                y = df.values[:i]
+                scat.set_offsets([x[:i], y[:i]])
 
             # Adapt ylim, xlim
             if not len(x) == 0 or not len(y) == 0:  # do not adapt if line is still empty
@@ -146,32 +178,36 @@ class Plot:
 
                 # If plotting progressed beyond initial ylim, extent axis by new maximum
                 if df.values[i].min() < ylim_init[0] or df.values[i].max() > ylim_init[1]:
-                    ax.set_ylim(df.values[:i].min(), df.values[:i].max() * 1.1)
+                    ax.set_ylim(df.values[:i].min() * 1.1, df.values[:i].max() * 1.1)
 
             # print progress bar
             helpers.progress_bar(i + 2, len(df.index))
 
             # Add Title
             if datetime_index:
-                plt.pyplot.title(plotTitle + '\n' + str(df.index[i].strftime('%Y')))
+                plt.pyplot.title(plot_title + '\n' + str(df.index[i].strftime('%Y')))
             else:
-                plt.pyplot.title('\n'.join([plotTitle, str(int(df.index[i]))]))
+                plt.pyplot.title('\n'.join([plot_title, str(int(df.index[i]))]))
 
-            return lines
+            if LINEPLOT:
+                return lines
+            else:
+                return scat
 
-        filename_plot = self.create_filename()
+        # Create Plot
+        filename_plot = helpers.create_filename()
 
         # Call animate() function
         animator = plt.animation.FuncAnimation(fig,
-                                               animate,
-                                               interval=50,
+                                               animate_line,
+                                               interval=frame_interval,
                                                frames=len(df.index) - 1,
-                                               init_func=init,
+                                               init_func=init_line,
                                                blit=True,
                                                repeat_delay=300)
 
-        # Save file as gif
-        animator.save(filename_plot, dpi=300)
+        # Save file as GIF
+        animator.save(filename_plot, dpi=QUALITY_DPI)
 
         return filename_plot
 
@@ -203,8 +239,9 @@ class Plot:
         else:
             # df.index = pd.to_datetime(df.index)
             df_type = 'DataFrame'
+
             if len(df.index) < len(df.columns):
-                df.transpose()
+                df = df.transpose()
 
         return df, datetime_index, df_type
 
@@ -227,16 +264,6 @@ class Plot:
 
         return datetime_details_dict
 
-    @staticmethod
-    def create_filename():
-        """
-
-        :return:
-        """
-
-        now = datetime.datetime.now()
-        folder = 'static/'
-        return folder + now.strftime("plot_%Y_%m_%d_%H_%M_%S.gif")
 
     @staticmethod
     def create_random_df():
@@ -248,24 +275,11 @@ class Plot:
         df = pd.DataFrame()
 
         for column in range(10):
-            values = np.random.randint(random.randint(-100, 0), random.randint(1,100), 10)
+            values = np.random.randint(random.randint(-100, 0), random.randint(1, 100), 10)
             df[str(column)] = values
 
         return df, False, "DataFrame"
 
-
-    @staticmethod
-    def get_frame_num(frame_interval, animation_length, df_length):
-        """
-        :param frame_interval:
-        :param animation_length:
-        :param df_length:
-        :return:
-        """
-
-        frame_num = animation_length * df_length / (frame_interval / 1000)
-
-        return int(frame_num)
 
     @staticmethod
     def standard_interpolation(df, frame_num, method):
@@ -287,8 +301,6 @@ class Plot:
 
         # Interpolate New Values
         df_interpolated = df_reindex.interpolate(method=method)
-
-
 
         return df_interpolated
 
@@ -320,9 +332,10 @@ class Plot:
         # https://machinelearningmastery.com/resample-interpolate-time-series-data-python/
         df_resampled = df.resample(interpolation_freq).mean()  # add quarters to data
         df_interpolated = df_resampled.interpolate(method=method)
+
         return df_interpolated
 
 
 if __name__ == '__main__':
-    new_plot = Plot('src/temperature.csv')
-    new_plot.main('new plot on christmas')
+    new_plot = Plot('')
+    new_plot.main("Drop'n'Plot")

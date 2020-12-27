@@ -6,6 +6,40 @@ UPLOAD_FOLDER = 'uploads/'
 ALLOWED_EXTENSIONS = {'txt', 'csv'}
 
 
+def get_frame_num(frame_interval, animation_length):
+    """
+    :param frame_interval:
+    :param animation_length:
+    :return:
+    """
+
+    fps = 1000 / frame_interval  # fps = frames per second
+    frame_num = animation_length * fps
+
+    return int(math.floor(frame_num / 100) * 100)  # round to nearest 100
+
+
+def get_frame_interval(animation_length, df_length):
+    """
+
+    :param animation_length:
+    :param df_length:
+    :return:
+    """
+    return int(animation_length * 1000 / df_length)
+
+
+def create_filename():
+    """
+
+    :return:
+    """
+
+    now = datetime.datetime.now()
+    folder = 'static/'
+    return folder + now.strftime("plot_%Y_%m_%d_%H_%M_%S.gif")
+
+
 def deleteOldFiles():
     """
     Delete .gif plot files older than 30 minutes to save storage space
@@ -56,4 +90,4 @@ def progress_bar(iteration, total_iterations) -> None:
     progress = int(math.ceil(iteration / total_iterations * 100))
     bar = '█' * int(progress / 4)
     bar_rest = '·' * (25 - int(progress / 4))
-    print('\rProgress: ' + bar + bar_rest + str(progress) + ' %', end='', flush=True)
+    print('\rProgress: ' + bar + bar_rest + ' ' + str(progress) + '%', end='', flush=True)
