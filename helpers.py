@@ -89,7 +89,7 @@ def progress_bar(iteration, total_iterations) -> None:
     """
 
     progress = int(math.ceil(iteration / total_iterations * 100))
-    bar = '█' * int(progress / 4)
+    bar = 'X' * int(progress / 4)
     bar_rest = '·' * (25 - int(progress / 4))
     sys.stdout.write('\rProgress: ' + bar + bar_rest + ' ' + str(progress) + '%')
     sys.stdout.flush()
