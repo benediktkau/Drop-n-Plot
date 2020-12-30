@@ -337,5 +337,5 @@ class Plot:
 
 
 if __name__ == '__main__':
-    new_plot = Plot('')
+    new_plot = Plot('temperature.csv')
     new_plot.main("Drop'n'Plot")

@@ -47,7 +47,10 @@ def plot():
 
         plotObject = plot_class.Plot(uploadedFile.filename)
         plotFilename = plotObject.main(plotTitle)  # concatenate filename of plot result
-        os.remove(uploadedFile.filename)
+        try:
+            os.remove(uploadedFile.filename)
+        except FileNotFoundError:
+            logging.warning('No file could be removed.')
 
         return render_template('plot.html', plotFilename=plotFilename,
                                defaults={'plotFilename': '../static/temperature.gif'})
