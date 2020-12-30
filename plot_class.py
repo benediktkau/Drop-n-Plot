@@ -205,10 +205,9 @@ class Plot:
         animator = plt.animation.FuncAnimation(fig,
                                                animate_line,
                                                interval=frame_interval,
-                                               frames=len(self.df.index) - 1,
+                                               frames=int(len(self.df.index)/2) - 1,
                                                init_func=init_line,
                                                blit=True,
-                                               repeat_delay=300,
                                                save_count=0)
 
         # Save file as GIF
