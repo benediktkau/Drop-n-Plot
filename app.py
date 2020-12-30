@@ -61,6 +61,7 @@ def plot():
     else:
         return render_template("plot.html", plotFilename='../static/temperature.gif')
 
+
 if __name__ == '__main__':
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers

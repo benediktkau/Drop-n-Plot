@@ -5,6 +5,7 @@ import pandas as pd
 import helpers
 import numpy as np
 import random
+import sys
 
 plt.use('Agg')  # used in backend
 
@@ -68,6 +69,7 @@ class Plot:
                                                  interpolation_method)
             except Exception as e:
                 logging.warning('Interpolation Failed: ' + str(e))
+                sys.stdout.write(str(e))
             else:
                 logging.info('Interpolation Successful')
 
@@ -78,6 +80,7 @@ class Plot:
                 self.df = self.standard_interpolation(self.df, frame_num, interpolation_method)
             except Exception as e:
                 logging.warning('Interpolation Failed: ' + str(e))
+                sys.stdout.write('Interpolation Failed: ' + str(e))
             else:
                 logging.info('Interpolation Successful')
 
