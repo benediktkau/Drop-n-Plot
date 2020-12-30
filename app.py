@@ -29,15 +29,13 @@ def plot():
         """ Handling file upload """
         if request.files['file'] == '':
             pass
-        #    return render_template('sorry.html', text="Sorry, there was a problem with your file upload")
-
 
         try:
             uploadedFile = request.files['file']
             if uploadedFile.filename != '':
                 uploadedFile.save(uploadedFile.filename)
         except Exception:
-            return render_template('sorry.html', text="Sorry, there was a problem with your file upload")
+            return render_template('templates/sorry.html', text="Sorry, there was a problem with your file upload")
 
         plotTitle = request.form.get('plotname')
         if plotTitle == '':

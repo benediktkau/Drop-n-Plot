@@ -1,10 +1,1 @@
-werkzeug - INFO - 127.0.0.1 - - [28/Dec/2020 10:28:19] "[37mGET /static/plot_2020_12_28_10_19_34.gif HTTP/1.1[0m" 200 -
-root - INFO - frame number:100
-root - INFO - Interpolation Successful
-root - INFO - Length dataframe100
-matplotlib.animation - WARNING - MovieWriter ffmpeg unavailable; using Pillow instead.
-matplotlib.animation - INFO - Animation.save using <class 'matplotlib.animation.PillowWriter'>
-root - WARNING - No file could be removed.
-werkzeug - INFO - 127.0.0.1 - - [28/Dec/2020 10:28:48] "[37mPOST /plot HTTP/1.1[0m" 200 -
-werkzeug - INFO - 127.0.0.1 - - [28/Dec/2020 10:28:48] "[37mGET /static/plot_2020_12_28_10_28_22.gif HTTP/1.1[0m" 200 -
-werkzeug - INFO - 127.0.0.1 - - [28/Dec/2020 10:30:53] "[37mGET / HTTP/1.1[0m" 200 -
+werkzeug - INFO -  * Detected change in '/Users/benediktkau/OneDrive - University College London/05_Harvard/CS50/Drop-N-Plot/helpers.py', reloading

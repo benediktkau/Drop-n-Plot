@@ -2,7 +2,7 @@ import datetime
 import os
 import math
 
-UPLOAD_FOLDER = 'uploads/'
+UPLOAD_FOLDER = 'tmp/'
 ALLOWED_EXTENSIONS = {'txt', 'csv'}
 
 
