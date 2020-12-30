@@ -29,4 +29,4 @@ _(Flask)_
 - if possible, column 0 should be an index
 - if the index is in datetime format, it should be in the Python datetime.datetime package format
 
-![Example Plot 2](https://github.com/benediktkau/Drop-n-Plot/blob/main/github_readme_res/example3.png)
+![Example Plot 2](https://github.com/benediktkau/Drop-n-Plot/blob/main/github_readme_res/example.gif)
