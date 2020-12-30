@@ -58,3 +58,6 @@ def plot():
 
     else:
         return render_template("plot.html", plotFilename='../static/temperature.gif')
+
+if __name__ == '__main__':
+    app.run(debug=True)
