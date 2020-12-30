@@ -1,5 +1,5 @@
 import logging
-import matplotlib as plt  # pyplot
+import matplotlib as plt
 import matplotlib.pyplot
 import pandas as pd
 import helpers

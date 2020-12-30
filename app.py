@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, flash, redirect, url_for
-from matplotlib.pyplot import plot
-from werkzeug.utils import secure_filename
-import helpers
-import os
-import plot_class
 import logging
+import os
+
+from flask import Flask, render_template, request
+
+import helpers
+import plot_class
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = helpers.UPLOAD_FOLDER
