@@ -208,7 +208,8 @@ class Plot:
                                                frames=len(self.df.index) - 1,
                                                init_func=init_line,
                                                blit=True,
-                                               repeat_delay=300)
+                                               repeat_delay=300,
+                                               save_count=0)
 
         # Save file as GIF
         animator.save(filename_plot, dpi=QUALITY_DPI)
