@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 
 from flask import Flask, render_template, request
 
@@ -12,6 +13,9 @@ app.config.update(
     TESTING=True,
     SECRET_KEY=b'_5#y2L"F4Q8z\n\xec]/'
 )
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
 
 
 @app.route("/", methods=["GET", "POST"])
