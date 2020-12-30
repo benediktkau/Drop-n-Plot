@@ -64,39 +64,39 @@ class Plot:
                                                               seconds=int(datetime_details_dict['seconds'] * 0.1))
 
             try:
-                df = self.datetime_interpolation(self.df, datetime_details_dict['datetime_freq'], frame_num,
+                self.df = self.datetime_interpolation(self.df, datetime_details_dict['datetime_freq'], frame_num,
                                                  interpolation_method)
             except Exception as e:
                 logging.warning('Interpolation Failed: ' + str(e))
             else:
                 logging.info('Interpolation Successful')
 
-            frame_interval = helpers.get_frame_interval(ANIMATION_DURATION, len(df.index))
+            frame_interval = helpers.get_frame_interval(ANIMATION_DURATION, len(self.df.index))
 
         else:  # standard interpolation
             try:
-                df = self.standard_interpolation(self.df, frame_num, interpolation_method)
+                self.df = self.standard_interpolation(self.df, frame_num, interpolation_method)
             except Exception as e:
                 logging.warning('Interpolation Failed: ' + str(e))
             else:
                 logging.info('Interpolation Successful')
 
             frame_interval = MILLISECONDS_BETWEEN_FRAMES
-            df.reset_index(drop=True, inplace=True)
+            self.df.reset_index(drop=True, inplace=True)
 
-        logging.info('Length dataframe' + str(len(df.index)))
+        logging.info('Length dataframe' + str(len(self.df.index)))
 
         """ ATTEMPT SCATTER """
         # plt.pyplot.savefig('attempt_scatter.png')
 
         # Get xlim, ylim
         if self.datetime_index:
-            xlim_init = (min(df.index), max(df.truncate(after=datetime_xlim_date).index))
+            xlim_init = (min(self.df.index), max(self.df.truncate(after=datetime_xlim_date).index))
 
         else:
-            xlim_init = (0.1 * min(df.index), 0.1 * max(df.index))
+            xlim_init = (0.1 * min(self.df.index), 0.1 * max(self.df.index))
 
-        ylim_init = (0, 0.3 * df.values.max())
+        ylim_init = (0, 0.3 * self.df.values.max())
 
         fig = plt.pyplot.figure()
         ax = plt.pyplot.axes(xlim=xlim_init, ylim=ylim_init)
@@ -114,7 +114,7 @@ class Plot:
             lines = []
 
             if self.df_type == "DataFrame":
-                for index in range(len(df.columns)):
+                for index in range(len(self.df.columns)):
                     color = COLORS[index]
                     line_artist = ax.plot([], [], lw=2, color=color)[0]
                     lines.append(line_artist)
@@ -151,43 +151,43 @@ class Plot:
             :return: line element to be plotted
             """
 
-            x = list(df.index[:i])
+            x = list(i.df.index[:i])
 
             if LINEPLOT:
 
                 for column, line in enumerate(lines):
                     if self.df_type == "DataFrame":
-                        y = df[df.columns[column]][:i]
+                        y = i.df[i.df.columns[column]][:i]
                     else:
-                        y = df.values[:i]
+                        y = i.df.values[:i]
                     line.set_data(x, y)
 
             else:
-                y = df.values[:i]
+                y = i.df.values[:i]
                 scat.set_offsets([x[:i], y[:i]])
 
             # Adapt ylim, xlim
             if not len(x) == 0 or not len(y) == 0:  # do not adapt if line is still empty
 
                 # If plotting progressed beyond initial xlim, extent axis by new maximum
-                if df.index[i] < xlim_init[0] or df.index[i] > xlim_init[1]:
+                if i.df.index[i] < xlim_init[0] or i.df.index[i] > xlim_init[1]:
                     if datetime_index:
-                        ax.set_xlim(min(df.index), max(df[:i].index))
+                        ax.set_xlim(min(i.df.index), max(i.df[:i].index))
                     else:
                         ax.set_xlim(0, max(x) * 1.01)
 
                 # If plotting progressed beyond initial ylim, extent axis by new maximum
-                if df.values[i].min() < ylim_init[0] or df.values[i].max() > ylim_init[1]:
-                    ax.set_ylim(df.values[:i].min() * 1.1, df.values[:i].max() * 1.1)
+                if i.df.values[i].min() < ylim_init[0] or i.df.values[i].max() > ylim_init[1]:
+                    ax.set_ylim(i.df.values[:i].min() * 1.1, i.df.values[:i].max() * 1.1)
 
             # print progress bar
-            helpers.progress_bar(i + 2, len(df.index))
+            helpers.progress_bar(i + 2, len(i.df.index))
 
             # Add Title
             if datetime_index:
-                plt.pyplot.title(plot_title + '\n' + str(df.index[i].strftime('%Y')))
+                plt.pyplot.title(plot_title + '\n' + str(i.df.index[i].strftime('%Y')))
             else:
-                plt.pyplot.title('\n'.join([plot_title, str(int(df.index[i]))]))
+                plt.pyplot.title('\n'.join([plot_title, str(int(i.df.index[i]))]))
 
             if LINEPLOT:
                 return lines
@@ -201,7 +201,7 @@ class Plot:
         animator = plt.animation.FuncAnimation(fig,
                                                animate_line,
                                                interval=frame_interval,
-                                               frames=len(df.index) - 1,
+                                               frames=len(self.df.index) - 1,
                                                init_func=init_line,
                                                blit=True,
                                                repeat_delay=300)
