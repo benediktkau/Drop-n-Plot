@@ -141,6 +141,7 @@ class Plot:
 
 
         datetime_index = self.datetime_index
+        df = self.df
 
         # Animation
         def animate_line(i):
@@ -151,43 +152,43 @@ class Plot:
             :return: line element to be plotted
             """
 
-            x = list(i.df.index[:i])
+            x = list(df.index[:i])
 
             if LINEPLOT:
 
                 for column, line in enumerate(lines):
                     if self.df_type == "DataFrame":
-                        y = i.df[i.df.columns[column]][:i]
+                        y = df[df.columns[column]][:i]
                     else:
-                        y = i.df.values[:i]
+                        y = df.values[:i]
                     line.set_data(x, y)
 
             else:
-                y = i.df.values[:i]
+                y = df.values[:i]
                 scat.set_offsets([x[:i], y[:i]])
 
             # Adapt ylim, xlim
             if not len(x) == 0 or not len(y) == 0:  # do not adapt if line is still empty
 
                 # If plotting progressed beyond initial xlim, extent axis by new maximum
-                if i.df.index[i] < xlim_init[0] or i.df.index[i] > xlim_init[1]:
+                if df.index[i] < xlim_init[0] or df.index[i] > xlim_init[1]:
                     if datetime_index:
-                        ax.set_xlim(min(i.df.index), max(i.df[:i].index))
+                        ax.set_xlim(min(df.index), max(df[:i].index))
                     else:
                         ax.set_xlim(0, max(x) * 1.01)
 
                 # If plotting progressed beyond initial ylim, extent axis by new maximum
-                if i.df.values[i].min() < ylim_init[0] or i.df.values[i].max() > ylim_init[1]:
-                    ax.set_ylim(i.df.values[:i].min() * 1.1, i.df.values[:i].max() * 1.1)
+                if df.values[i].min() < ylim_init[0] or df.values[i].max() > ylim_init[1]:
+                    ax.set_ylim(df.values[:i].min() * 1.1, df.values[:i].max() * 1.1)
 
             # print progress bar
-            helpers.progress_bar(i + 2, len(i.df.index))
+            helpers.progress_bar(i + 2, len(df.index))
 
             # Add Title
             if datetime_index:
-                plt.pyplot.title(plot_title + '\n' + str(i.df.index[i].strftime('%Y')))
+                plt.pyplot.title(plot_title + '\n' + str(df.index[i].strftime('%Y')))
             else:
-                plt.pyplot.title('\n'.join([plot_title, str(int(i.df.index[i]))]))
+                plt.pyplot.title('\n'.join([plot_title, str(int(df.index[i]))]))
 
             if LINEPLOT:
                 return lines
