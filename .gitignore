@@ -137,3 +137,5 @@ dmypy.json
 *.gif
 *.csv
 dropnplot_log-Benedikt’s MacBook Pro
+.idea/workspace.xml
+.vscode/settings.json
