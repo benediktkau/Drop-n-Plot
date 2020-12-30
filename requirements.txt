@@ -5,3 +5,4 @@ matplotlib~=3.3.2
 pandas==1.2.0
 numpy~=1.19.2
 gunicorn== 20.0.4
+scipy==1.5.4
